@@ -1,3 +1,5 @@
+import { AppError } from "@/errors/AppError";
+import { HttpStatus } from "@/errors/HttpStatus";
 import { FastifyReply, FastifyRequest } from "fastify";
 import { CreateUserInput, LoginUserInput } from "./auth.schema";
 import { AuthService } from "./auth.service";
@@ -11,13 +13,15 @@ export class AuthController {
   ) {
     try {
       const user = await this.authService.createUser(request.body);
-      return reply.status(201).send(user);
+      return reply.status(HttpStatus.CREATED).send(user);
     } catch (error: any) {
-      if (error.message.includes("Email already registered")) {
-        return reply.status(409).send({ message: error.message });
+      if (error instanceof AppError) {
+        return reply.status(error.code).send({ message: error.message });
       }
       console.error(error);
-      return reply.status(500).send({ message: "Internal server error" });
+      return reply
+        .status(HttpStatus.INTERNAL_SERVER_ERROR)
+        .send({ message: "Internal server error" });
     }
   }
 
@@ -27,13 +31,15 @@ export class AuthController {
   ) {
     try {
       const tokens = await this.authService.loginUser(request.body);
-      return reply.status(200).send(tokens);
+      return reply.status(HttpStatus.OK).send(tokens);
     } catch (error: any) {
-      if (error.message.includes("Invalid")) {
-        return reply.status(401).send({ message: error.message });
+      if (error instanceof AppError) {
+        return reply.status(error.code).send({ message: error.message });
       }
       console.error(error);
-      return reply.status(500).send({ message: "Internal server error" });
+      return reply
+        .status(HttpStatus.INTERNAL_SERVER_ERROR)
+        .send({ message: "Internal server error" });
     }
   }
 
@@ -41,13 +47,15 @@ export class AuthController {
     try {
       const userId = request.user.userId;
       const user = await this.authService.findUserById(userId);
-      return reply.status(200).send(user);
+      return reply.status(HttpStatus.OK).send(user);
     } catch (error: any) {
-      console.error(error);
-      if (error.message.includes("not found")) {
-        return reply.status(404).send({ message: error.message });
+      if (error instanceof AppError) {
+        return reply.status(error.code).send({ message: error.message });
       }
-      return reply.status(500).send({ message: "Internal server error" });
+      console.error(error);
+      return reply
+        .status(HttpStatus.INTERNAL_SERVER_ERROR)
+        .send({ message: "Internal server error" });
     }
   }
 }
