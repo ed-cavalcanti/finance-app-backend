@@ -34,7 +34,7 @@ export const loginResponseSchema = {
   ...zodToJsonSchema(_loginResponseSchema),
 };
 
-const _userResponseSchema = z.object({
+export const _userResponseSchema = z.object({
   id: z.string(),
   email: z.string().email(),
   name: z.string(),

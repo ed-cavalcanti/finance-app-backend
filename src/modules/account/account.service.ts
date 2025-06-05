@@ -20,7 +20,10 @@ export class AccountService {
     });
 
     if (hasAccount) {
-      throw new AppError("User already has an money account", HttpStatus.CONFLICT);
+      throw new AppError(
+        "User already has an money account",
+        HttpStatus.CONFLICT
+      );
     }
 
     const account = await prisma.account.create({
@@ -32,5 +35,20 @@ export class AccountService {
     });
 
     return account;
+  }
+
+  async getBalance(userId: string) {
+    const balance = await prisma.account.findUnique({
+      where: { userId },
+      select: {
+        balance: true,
+      },
+    });
+
+    if (!balance) {
+      throw new AppError("Account not found", HttpStatus.NOT_FOUND);
+    }
+
+    return balance;
   }
 }

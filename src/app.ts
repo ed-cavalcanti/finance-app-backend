@@ -9,6 +9,7 @@ import Fastify, {
 import { ZodError } from "zod";
 
 import envPlugin from "./config/env";
+import { HttpStatus } from "./errors/HttpStatus";
 import { accountRoutes } from "./modules/account/account.routes";
 import {
   createAccountResponseSchema,
@@ -21,6 +22,8 @@ import {
   loginUserSchema,
   userResponseSchema,
 } from "./modules/auth/auth.schema";
+import { dashboardRoutes } from "./modules/dashboard/dashboard.routes";
+import { dashboardResponseSchema } from "./modules/dashboard/dashboard.schema";
 import jwtPlugin from "./plugins/jwt";
 
 export function buildJsonSchemas() {
@@ -31,6 +34,7 @@ export function buildJsonSchemas() {
     loginResponseSchema,
     createAccountSchema,
     createAccountResponseSchema,
+    dashboardResponseSchema,
   };
   return {
     models,
@@ -55,7 +59,7 @@ export async function buildApp(opts = {}): Promise<FastifyInstance> {
     openapi: {
       info: {
         title: "Finance app API",
-        version: "0.0.1",
+        version: "0.0.2",
       },
       components: {
         securitySchemes: {
@@ -78,25 +82,28 @@ export async function buildApp(opts = {}): Promise<FastifyInstance> {
     },
   });
 
-  app.register(authRoutes, { prefix: "/api/auth" });
-  app.register(accountRoutes, { prefix: "/api/accounts" });
+  app.register(authRoutes, { prefix: "/api/v1/auth" });
+  app.register(accountRoutes, { prefix: "/api/v1/accounts" });
+  app.register(dashboardRoutes, { prefix: "/api/v1/dashboard" });
 
   app.setErrorHandler(
     (error, _request: FastifyRequest, reply: FastifyReply) => {
       if (error instanceof ZodError) {
-        return reply.status(400).send({
+        return reply.status(HttpStatus.BAD_REQUEST).send({
           message: "Validation error",
           errors: error.flatten().fieldErrors,
         });
       }
       if (error.validation) {
         return reply
-          .status(400)
+          .status(HttpStatus.BAD_REQUEST)
           .send({ message: "Validation error", errors: error.validation });
       }
 
       app.log.error(error);
-      return reply.status(500).send({ message: "Internal server error" });
+      return reply
+        .status(HttpStatus.INTERNAL_SERVER_ERROR)
+        .send({ message: "Internal server error" });
     }
   );
 
