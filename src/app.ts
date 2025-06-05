@@ -9,6 +9,11 @@ import Fastify, {
 import { ZodError } from "zod";
 
 import envPlugin from "./config/env";
+import { accountRoutes } from "./modules/account/account.routes";
+import {
+  createAccountResponseSchema,
+  createAccountSchema,
+} from "./modules/account/account.schema";
 import { authRoutes } from "./modules/auth/auth.routes";
 import {
   createUserSchema,
@@ -24,6 +29,8 @@ export function buildJsonSchemas() {
     loginUserSchema,
     userResponseSchema,
     loginResponseSchema,
+    createAccountSchema,
+    createAccountResponseSchema,
   };
   return {
     models,
@@ -72,6 +79,7 @@ export async function buildApp(opts = {}): Promise<FastifyInstance> {
   });
 
   app.register(authRoutes, { prefix: "/api/auth" });
+  app.register(accountRoutes, { prefix: "/api/accounts" });
 
   app.setErrorHandler(
     (error, _request: FastifyRequest, reply: FastifyReply) => {
