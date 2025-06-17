@@ -2,15 +2,11 @@ import { AppError } from "@/errors/AppError";
 import { HttpStatus } from "@/errors/HttpStatus";
 import type { CreateUserInput, UserService } from "@/modules/user";
 import { FastifyReply, FastifyRequest } from "fastify";
-import type { LoginInputSchema } from "./auth.schema";
-import { AuthService } from "./auth.service";
-export class AuthController {
-  constructor(
-    private authService: AuthService,
-    private userService: UserService
-  ) {}
 
-  async registerUserHandler(
+export class UserController {
+  constructor(private userService: UserService) {}
+
+  async createHandler(
     request: FastifyRequest<{ Body: CreateUserInput }>,
     reply: FastifyReply
   ) {
@@ -28,13 +24,11 @@ export class AuthController {
     }
   }
 
-  async loginHandler(
-    request: FastifyRequest<{ Body: LoginInputSchema }>,
-    reply: FastifyReply
-  ) {
+  async getMeHandler(request: FastifyRequest, reply: FastifyReply) {
     try {
-      const tokens = await this.authService.login(request.body);
-      return reply.status(HttpStatus.OK).send(tokens);
+      const userId = request.user.userId;
+      const user = await this.userService.findById(userId);
+      return reply.status(HttpStatus.OK).send(user);
     } catch (error: any) {
       if (error instanceof AppError) {
         return reply.status(error.code).send({ message: error.message });

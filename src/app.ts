@@ -1,3 +1,14 @@
+import envPlugin from "@/config/env";
+import { HttpStatus } from "@/errors/HttpStatus";
+import {
+  accountRoutes,
+  createAccountResponseSchema,
+  createAccountSchema,
+} from "@/modules/account";
+import { authRoutes, loginResponseSchema, loginSchema } from "@/modules/auth";
+import { dashboardResponseSchema, dashboardRoutes } from "@/modules/dashboard";
+import { createUserSchema, userResponseSchema, userRoutes } from "@/modules/user";
+import jwtPlugin from "@/plugins/jwt";
 import fastifySensible from "@fastify/sensible";
 import fastifySwagger from "@fastify/swagger";
 import fastifySwaggerUI from "@fastify/swagger-ui";
@@ -8,28 +19,10 @@ import Fastify, {
 } from "fastify";
 import { ZodError } from "zod";
 
-import envPlugin from "./config/env";
-import { HttpStatus } from "./errors/HttpStatus";
-import { accountRoutes } from "./modules/account/account.routes";
-import {
-  createAccountResponseSchema,
-  createAccountSchema,
-} from "./modules/account/account.schema";
-import { authRoutes } from "./modules/auth/auth.routes";
-import {
-  createUserSchema,
-  loginResponseSchema,
-  loginUserSchema,
-  userResponseSchema,
-} from "./modules/auth/auth.schema";
-import { dashboardRoutes } from "./modules/dashboard/dashboard.routes";
-import { dashboardResponseSchema } from "./modules/dashboard/dashboard.schema";
-import jwtPlugin from "./plugins/jwt";
-
 export function buildJsonSchemas() {
   const models = {
     createUserSchema,
-    loginUserSchema,
+    loginSchema,
     userResponseSchema,
     loginResponseSchema,
     createAccountSchema,
@@ -43,7 +36,6 @@ export function buildJsonSchemas() {
 }
 
 export const { $ref } = buildJsonSchemas();
-
 export async function buildApp(opts = {}): Promise<FastifyInstance> {
   const app = Fastify(opts);
 
@@ -85,6 +77,7 @@ export async function buildApp(opts = {}): Promise<FastifyInstance> {
   app.register(authRoutes, { prefix: "/api/v1/auth" });
   app.register(accountRoutes, { prefix: "/api/v1/accounts" });
   app.register(dashboardRoutes, { prefix: "/api/v1/dashboard" });
+  app.register(userRoutes, { prefix: "/api/v1/user" });
 
   app.setErrorHandler(
     (error, _request: FastifyRequest, reply: FastifyReply) => {

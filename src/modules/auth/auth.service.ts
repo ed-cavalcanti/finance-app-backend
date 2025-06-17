@@ -1,44 +1,20 @@
 import { AppError } from "@/errors/AppError";
 import { HttpStatus } from "@/errors/HttpStatus";
-import { prisma } from "@/lib/prisma";
+import type { UserService } from "@/modules/user";
 import bcrypt from "bcryptjs";
 import { FastifyInstance } from "fastify";
-import { CreateUserInput, LoginUserInput } from "./auth.schema";
+import type { LoginInputSchema } from "./auth.schema";
 
 export class AuthService {
-  constructor(private fastify: FastifyInstance) {}
+  constructor(
+    private fastify: FastifyInstance,
+    private userService: UserService
+  ) {}
 
-  async createUser(input: CreateUserInput) {
-    const { email, password, name } = input;
-
-    const existingUser = await prisma.user.findUnique({
-      where: { email },
-    });
-
-    if (existingUser) {
-      throw new AppError("Email already registered", HttpStatus.CONFLICT);
-    }
-
-    const hashedPassword = await bcrypt.hash(password, 10);
-
-    const user = await prisma.user.create({
-      data: {
-        email,
-        password: hashedPassword,
-        name,
-      },
-    });
-
-    const { password: _, ...userWithoutPassword } = user;
-    return userWithoutPassword;
-  }
-
-  async loginUser(input: LoginUserInput) {
+  async login(input: LoginInputSchema) {
     const { email, password } = input;
 
-    const user = await prisma.user.findUnique({
-      where: { email },
-    });
+    const user = await this.userService.findByEmail(email, true);
 
     if (!user) {
       throw new AppError("Invalid email or password", HttpStatus.UNAUTHORIZED);
@@ -53,22 +29,5 @@ export class AuthService {
     const accessToken = this.fastify.jwt.sign({ userId: user.id });
 
     return { accessToken };
-  }
-
-  async findUserById(userId: string) {
-    const user = await prisma.user.findUnique({
-      where: { id: userId },
-      select: {
-        id: true,
-        email: true,
-        name: true,
-        createdAt: true,
-        updatedAt: true,
-      },
-    });
-    if (!user) {
-      throw new AppError("User not found", HttpStatus.NOT_FOUND);
-    }
-    return user;
   }
 }

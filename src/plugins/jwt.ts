@@ -4,10 +4,9 @@ import fp from "fastify-plugin"
 
 declare module "@fastify/jwt" {
   interface FastifyJWT {
-    payload: { userId: string } // Definir o payload do seu token
+    payload: { userId: string }
     user: {
       userId: string
-      // Adicione outras propriedades do usuário se necessário
     }
   }
 }
@@ -23,7 +22,7 @@ declare module "fastify" {
 
 export default fp(async (fastify: FastifyInstance) => {
   fastify.register(fastifyJwt, {
-    secret: fastify.config.JWT_SECRET, // Carrega do .env
+    secret: fastify.config.JWT_SECRET,
     sign: {
       expiresIn: "7d",
     },
