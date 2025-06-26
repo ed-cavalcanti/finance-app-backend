@@ -7,7 +7,16 @@ import {
 } from "@/modules/account";
 import { authRoutes, loginResponseSchema, loginSchema } from "@/modules/auth";
 import { dashboardResponseSchema, dashboardRoutes } from "@/modules/dashboard";
-import { createUserSchema, userResponseSchema, userRoutes } from "@/modules/user";
+import {
+  createTransactionSchema,
+  transactionResponseSchema,
+  transactionRoutes,
+} from "@/modules/transaction";
+import {
+  createUserSchema,
+  userResponseSchema,
+  userRoutes,
+} from "@/modules/user";
 import jwtPlugin from "@/plugins/jwt";
 import fastifySensible from "@fastify/sensible";
 import fastifySwagger from "@fastify/swagger";
@@ -28,6 +37,8 @@ export function buildJsonSchemas() {
     createAccountSchema,
     createAccountResponseSchema,
     dashboardResponseSchema,
+    createTransactionSchema,
+    transactionResponseSchema,
   };
   return {
     models,
@@ -78,6 +89,7 @@ export async function buildApp(opts = {}): Promise<FastifyInstance> {
   app.register(accountRoutes, { prefix: "/api/v1/accounts" });
   app.register(dashboardRoutes, { prefix: "/api/v1/dashboard" });
   app.register(userRoutes, { prefix: "/api/v1/user" });
+  app.register(transactionRoutes, { prefix: "/api/v1/transaction" });
 
   app.setErrorHandler(
     (error, _request: FastifyRequest, reply: FastifyReply) => {
