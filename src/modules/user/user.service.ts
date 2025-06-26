@@ -10,7 +10,9 @@ export class UserService {
   async create(input: CreateUserInput) {
     const { email, password, name } = input;
 
-    const existingUser = await this.findByEmail(email);
+    const existingUser = await prisma.user.findUnique({
+      where: { email },
+    });
 
     if (existingUser) {
       throw new AppError("Email already registered", HttpStatus.CONFLICT);
